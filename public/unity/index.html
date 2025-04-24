@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Unity WebGL Player | Web3D</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
+</head>
+
+<body>
+  <div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas" style="width: 100%; height: 100%; background: transparent;display: none;"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    var container = document.querySelector("#unity-container");
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressBarFull = document.querySelector("#unity-progress-bar-full");
+
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/Web3D_Demo_Release.loader.js";
+    var config = {
+      dataUrl: buildUrl + "/Web3D_Demo_Release.data.unityweb",
+      frameworkUrl: buildUrl + "/Web3D_Demo_Release.framework.js.unityweb",
+      codeUrl: buildUrl + "/Web3D_Demo_Release.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "SF",
+      productName: "Web3D",
+      productVersion: "0.1",
+      // showBanner: (msg, type) => { },
+    };
+
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      var meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+      document.getElementsByTagName('head')[0].appendChild(meta);
+      container.className = "unity-mobile";
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+    } else {
+      // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+    }
+
+    loadingBar.style.display = "block";
+
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+
+    var unityInstances
+    script.onload = () => {
+      createUnityInstance(canvas, config, (progress) => {
+        console.log(progress, "progress")
+        progressBarFull.style.width = 100 * progress + "%";
+      }).then((unityInstance) => {
+        unityInstances = unityInstance
+      }).catch((message) => {
+        alert(message);
+      });
+
+
+    };
+    document.body.appendChild(script);
+
+    // // unity加载完成
+    function LoadingCom(s) {
+      loadingBar.style.display = "none";
+      canvas.style.display = "block";
+      window.parent.postMessage({ guid: s, event: "LoadingCom" }, "*");
+    }
+
+    // 发送命令
+    function SendCmd(cmd) {
+      unityInstances && unityInstances.SendMessage("StartGame", "ReceiveRobot", cmd);
+    }
+  </script>
+</body>
+
+</html>
